@@ -29,10 +29,31 @@ const Users = () => {
         const querySnapshot = await getDocs(usersQuery);
 
         const usersData: User[] = [];
+        const avatarPromises: Promise<void>[] = [];
+
         querySnapshot.forEach((doc) => {
           const userData = doc.data() as User;
           usersData.push(userData);
+
+          if (userData.avatar) {
+            const avatarPromise = new Promise<void>((resolve, reject) => {
+              const image = new Image();
+              image.src = userData.avatar;
+
+              image.onload = () => {
+                resolve();
+              };
+
+              image.onerror = (error) => {
+                reject(error);
+              };
+            });
+
+            avatarPromises.push(avatarPromise);
+          }
         });
+
+        await Promise.all(avatarPromises); // Aguarda o carregamento de todos os avatares
 
         setUsers(usersData);
         setLoading(false);
